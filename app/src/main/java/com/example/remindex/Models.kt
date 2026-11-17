@@ -1,4 +1,5 @@
 package com.example.remindex
+import android.app.Person
 import java.time.LocalDateTime
 
 // Reminder Categories
@@ -7,6 +8,15 @@ sealed class Categoria(val etiqueta: String) {
     object Trabajo: Categoria("Trabajo")
     object Salud: Categoria("Salud")
     object Estudios: Categoria("Estudios")
+
+    companion object {
+        val options: List<Categoria> = listOf(
+            Personal,
+            Trabajo,
+            Salud,
+            Estudios
+        )
+    }
 }
 // Reminder Priorities
 sealed class Prioridad(val etiqueta: String, val nivel: Int) {
@@ -14,6 +24,15 @@ sealed class Prioridad(val etiqueta: String, val nivel: Int) {
     object Baja: Prioridad("Baja", 1)
     object Media: Prioridad("Media", 2)
     object Alta: Prioridad("Alta", 3 )
+
+
+    companion object {
+        val options: List<Prioridad> = listOf(
+            Baja,
+            Media,
+            Alta
+        )
+    }
 }
 // Reminder States
 sealed class EstadoRecordatorio(val etiqueta: String) {

@@ -44,7 +44,8 @@ class MainActivity: ComponentActivity() {
                     surface = Color.White
                 )
             ) {
-                PantallaRecordatorios()
+//                PantallaRecordatorios()
+                AppNavigation()
             }
         }
     }
@@ -146,7 +147,7 @@ fun ResumeCard(
 }
 
 @Composable
-fun RecordatorioCard(recordatorio: Recordatorio) {
+fun RecordatorioCard(recordatorio: Recordatorio, onClick: () -> Unit = {} ) {
     val estilo= ReminderData.estiloCategoria[recordatorio.categoria]
     val colorCategoria = estilo?.second ?: MaterialTheme.colorScheme.primary
 
