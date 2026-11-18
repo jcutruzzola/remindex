@@ -1,48 +1,54 @@
 
 package com.example.remindex.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.remindex.Categoria
-import com.example.remindex.Prioridad
+import com.example.remindex.components.DescripcionField
+import com.example.remindex.components.SelectorDeCategoria
+import com.example.remindex.components.SelectorPrioridad
+import com.example.remindex.components.TituloField
+
+import com.example.remindex.ui.state.ReminderFormUiState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
- fun ReminderForm(
-    titulo: String,
-    descripcion: String,
-    categoria: Categoria?,
-    prioridad: Prioridad?,
+fun ReminderFormScreen(
+    uiState: ReminderFormUiState,
     onTituloChange: (String) -> Unit,
     onDescripcionChange: (String) -> Unit,
-    onCategoriaChange: (Categoria) -> Unit,
-    onPrioridadChange: (Prioridad) -> Unit,
+    onCategoriaChange: (com.example.remindex.Categoria) -> Unit,
+    onPrioridadChange: (com.example.remindex.Prioridad) -> Unit,
     onGuardar: () -> Unit,
-    onCancelar: () -> Unit,
-    puedeGuardar: Boolean = true,
-    guardando: Boolean = false
+    onCancelar: () -> Unit
 ) {
-    var mostrarCategorias by remember {
-        mutableStateOf(false)
-    }
-
-    var mostrarPrioridades by remember {
-        mutableStateOf(false)
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Nuevo Recordatorio")
+                    Text("Nuevo recordatorio")
                 },
                 navigationIcon = {
                     TextButton(
                         onClick = onCancelar,
-                        enabled = !guardando
+                        enabled = !uiState.enviando
                     ) {
                         Text("Volver")
                     }
@@ -59,108 +65,46 @@ import com.example.remindex.Prioridad
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Título
-            OutlinedTextField(
-                value = titulo,
+            TituloField(
+                value = uiState.titulo,
                 onValueChange = onTituloChange,
-                label = { Text("Título") },
-                placeholder = { Text("Ej. Entregar informe") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                errorMessage = uiState.errorTitulo
             )
 
-            // Descripción
-            OutlinedTextField(
-                value = descripcion,
+            DescripcionField(
+                value = uiState.descripcion,
                 onValueChange = onDescripcionChange,
-                label = { Text("Descripción") },
-                placeholder = {
-                    Text("Describí el recordatorio")
-                },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3
+                errorMessage = uiState.errorDescripcion
             )
 
-            // Selector de categoría
-            Column {
-                Text("Categoría")
+            SelectorDeCategoria(
+                categoria = uiState.categoria,
+                onCategoriaChange = onCategoriaChange,
+                errorMessage = uiState.errorCategoria
+            )
 
-                Box {
-                    TextButton(
-                        onClick = {
-                            mostrarCategorias = true
-                        }
-                    ) {
-                        Text(
-                            categoria?.etiqueta
-                                ?: "Seleccionar categoría"
-                        )
-                    }
+            SelectorPrioridad(
+                prioridad = uiState.prioridad,
+                onPrioridadChange = onPrioridadChange,
+                errorMessage = uiState.errorPrioridad
+            )
 
-                    DropdownMenu(
-                        expanded = mostrarCategorias,
-                        onDismissRequest = {
-                            mostrarCategorias = false
-                        }
-                    ) {
-                        Categoria.options.forEach { option ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(option.etiqueta)
-                                },
-                                onClick = {
-                                    onCategoriaChange(option)
-                                    mostrarCategorias = false
-                                }
-                            )
-                        }
-                    }
-                }
+            if (uiState.errorGeneral != null) {
+                Text(
+                    text = uiState.errorGeneral,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
 
-            // Selector de prioridad
-            Column {
-                Text("Prioridad")
-
-                Box {
-                    TextButton(
-                        onClick = {
-                            mostrarPrioridades = true
-                        }
-                    ) {
-                        Text(prioridad?.etiqueta.toString())
-                    }
-
-                    DropdownMenu(
-                        expanded = mostrarPrioridades,
-                        onDismissRequest = {
-                            mostrarPrioridades = false
-                        }
-                    ) {
-                        Prioridad.options.forEach { option ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(option.etiqueta)
-                                },
-                                onClick = {
-                                    onPrioridadChange(option)
-                                    mostrarPrioridades = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Botones de acción
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+
                 TextButton(
                     onClick = onCancelar,
                     modifier = Modifier.weight(1f),
-                    enabled = !guardando
+                    enabled = !uiState.enviando
                 ) {
                     Text("Cancelar")
                 }
@@ -168,13 +112,17 @@ import com.example.remindex.Prioridad
                 Button(
                     onClick = onGuardar,
                     modifier = Modifier.weight(1f),
-                    enabled = puedeGuardar && !guardando
+                    enabled = !uiState.enviando
                 ) {
                     Text(
-                        if (guardando) "Guardando..."
+                        if (uiState.enviando) "Guardando..."
                         else "Guardar"
                     )
                 }
+            }
+
+            if (uiState.enviando) {
+                CircularProgressIndicator()
             }
         }
     }

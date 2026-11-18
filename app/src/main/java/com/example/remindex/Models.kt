@@ -10,12 +10,14 @@ sealed class Categoria(val etiqueta: String) {
     object Estudios: Categoria("Estudios")
 
     companion object {
-        val options: List<Categoria> = listOf(
-            Personal,
-            Trabajo,
-            Salud,
-            Estudios
-        )
+        val options: List<Categoria> by lazy {
+            listOf(
+                Personal,
+                Trabajo,
+                Salud,
+                Estudios
+            )
+        }
     }
 }
 // Reminder Priorities
@@ -27,11 +29,13 @@ sealed class Prioridad(val etiqueta: String, val nivel: Int) {
 
 
     companion object {
-        val options: List<Prioridad> = listOf(
-            Baja,
-            Media,
-            Alta
-        )
+        val options: List<Prioridad> by lazy {
+            listOf(
+                Baja,
+                Media,
+                Alta
+            )
+        }
     }
 }
 // Reminder States

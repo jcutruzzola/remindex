@@ -3,11 +3,11 @@ package com.example.remindex
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
@@ -15,135 +15,107 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 import com.example.remindex.screens.ReminderListScreen
-import com.example.remindex.screens.ReminderForm
+import com.example.remindex.screens.ReminderFormScreen
 import com.example.remindex.screens.ReminderDetail
 
+import com.example.remindex.viewmodel.ReminderListViewModel
+import com.example.remindex.viewmodel.ReminderFormViewModel
 
+import com.example.remindex.ui.state.ReminderListUiState
 
 @Composable
 fun AppNavigation() {
 
     val navController = rememberNavController()
 
-    val recordatorios = remember {
-        mutableStateListOf<Recordatorio>().apply {
-            addAll(ReminderData.recordatorios)
-        }
-    }
+    val listViewModel: ReminderListViewModel = viewModel()
+
+    val listUiState = listViewModel.uiState.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
-        startDestination = "Listado"
+        startDestination = "listado"
     ) {
 
-        // ========================================
         // PANTALLA DE LISTADO
-        // ========================================
+        composable("listado") {
 
-        composable("Listado") {
             ReminderListScreen(
-                recordatorios = recordatorios,
+                uiState = listUiState.value,
 
                 onCreateClick = {
-                    navController.navigate("Crear")
+                    navController.navigate("crear")
                 },
 
                 onReminderClick = { id ->
                     navController.navigate("detalle/$id")
+                },
+
+                onRetry = {
+                    listViewModel.reintentar()
+                },
+
+                onSimularVacio = {
+                    listViewModel.simularEstadoVacio()
+                },
+
+                onSimularError = {
+                    listViewModel.simularEstadoError()
+                },
+
+                onRestaurarDatos = {
+                    listViewModel.restaurarDatos()
                 }
             )
         }
 
-        // ========================================
         // PANTALLA DE CREACIÓN
-        // ========================================
+        composable("crear") {
 
-        composable("Crear") {
+            val formViewModel: ReminderFormViewModel = viewModel()
 
-            var titulo by remember {
-                mutableStateOf("")
+            val formUiState =
+                formViewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(formUiState.value.guardadoExitosamente) {
+                if (formUiState.value.guardadoExitosamente) {
+
+                    listViewModel.cargarRecordatorios()
+
+                    navController.popBackStack()
+                }
             }
 
-            var descripcion by remember {
-                mutableStateOf("")
-            }
+            ReminderFormScreen(
+                uiState = formUiState.value,
 
-            var categoria by remember {
-                mutableStateOf<Categoria?>(null)
-            }
-
-            var prioridad by remember {
-                mutableStateOf<Prioridad?>(null)
-            }
-
-            val puedeGuardar =
-                titulo.isNotBlank() &&
-                        categoria != null &&
-                        prioridad != null
-
-            ReminderForm(
-                titulo = titulo,
-                descripcion = descripcion,
-                categoria = categoria,
-                prioridad = prioridad,
-
-                onTituloChange = {
-                    titulo = it
+                onTituloChange = { valor ->
+                    formViewModel.onTituloChange(valor)
                 },
 
-                onDescripcionChange = {
-                    descripcion = it
+                onDescripcionChange = { valor ->
+                    formViewModel.onDescripcionChange(valor)
                 },
 
-                onCategoriaChange = {
-                    categoria = it
+                onCategoriaChange = { categoria ->
+                    formViewModel.onCategoriaChange(categoria)
                 },
 
-                onPrioridadChange = {
-                    prioridad = it
+                onPrioridadChange = { prioridad ->
+                    formViewModel.onPrioridadChange(prioridad)
                 },
 
                 onGuardar = {
-
-                    val categoriaSeleccionada = categoria
-                    val prioridadSeleccionada = prioridad
-
-                    if (
-                        titulo.isNotBlank() &&
-                        categoriaSeleccionada != null &&
-                        prioridadSeleccionada != null
-                    ) {
-
-                        val nuevoRecordatorio = Recordatorio(
-                            id = (recordatorios.maxOfOrNull {
-                                it.id
-                            } ?: 0) + 1,
-
-                            titulo = titulo.trim(),
-                            descripcion = descripcion.trim(),
-                            categoria = categoriaSeleccionada,
-                            prioridad = prioridadSeleccionada,
-                            estado = EstadoRecordatorio.Pendiente
-                        )
-
-                        recordatorios.add(nuevoRecordatorio)
-
-                        navController.popBackStack()
-                    }
+                    formViewModel.guardarRecordatorio()
                 },
 
                 onCancelar = {
                     navController.popBackStack()
-                },
-
-                puedeGuardar = puedeGuardar
+                }
             )
         }
 
-        // ========================================
         // PANTALLA DE DETALLE
-        // ========================================
-
         composable(
             route = "detalle/{id}",
             arguments = listOf(
@@ -153,8 +125,12 @@ fun AppNavigation() {
             )
         ) { backStackEntry ->
 
-            val id = backStackEntry.arguments
-                ?.getInt("id") ?: -1
+            val id = backStackEntry.arguments?.getInt("id") ?: -1
+
+            val recordatorios = when (val estado = listUiState.value) {
+                is ReminderListUiState.ConDatos -> estado.recordatorios
+                else -> emptyList()
+            }
 
             val recordatorio = recordatorios.firstOrNull {
                 it.id == id
@@ -171,7 +147,7 @@ fun AppNavigation() {
                 )
 
             } else {
-                Text("No se encontró el recordatorio")
+                Text("No se encontró el recordatorio.")
             }
         }
     }

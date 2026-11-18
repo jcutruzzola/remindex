@@ -103,7 +103,7 @@ fun PantallaRecordatorios() {
             ) {
                 items(items=recordatorios, key={it.id}) {
                     recordatorio ->
-                    RecordatorioCard(recordatorio)
+                    RecordatorioCard(recordatorio, onClick = {})
 
                 }
             }
@@ -147,7 +147,11 @@ fun ResumeCard(
 }
 
 @Composable
-fun RecordatorioCard(recordatorio: Recordatorio, onClick: () -> Unit = {} ) {
+fun RecordatorioCard(
+    recordatorio: Recordatorio,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+    ) {
     val estilo= ReminderData.estiloCategoria[recordatorio.categoria]
     val colorCategoria = estilo?.second ?: MaterialTheme.colorScheme.primary
 
@@ -159,6 +163,7 @@ fun RecordatorioCard(recordatorio: Recordatorio, onClick: () -> Unit = {} ) {
     }
 
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape= RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
