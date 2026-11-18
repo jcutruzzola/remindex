@@ -164,7 +164,7 @@ fun RecordatorioCard(
 
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape= RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -235,9 +235,11 @@ fun RecordatorioCard(
 @Composable
 fun Etiqueta(
     texto: String,
-    color: Color
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
     Surface(
+        modifier = modifier,
         color = color.copy(alpha=0.12f),
         shape= RoundedCornerShape(50)
         ) {

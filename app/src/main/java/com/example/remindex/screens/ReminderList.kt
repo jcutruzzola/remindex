@@ -2,7 +2,6 @@ package com.example.remindex.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -12,15 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.example.remindex.EstadoRecordatorio
 import com.example.remindex.RecordatorioCard
 import com.example.remindex.ResumeCard
+import com.example.remindex.components.UiStateContent
 import com.example.remindex.ui.state.ReminderListUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,38 +117,23 @@ fun ReminderListScreen(
 
                 is ReminderListUiState.Cargando -> {
 
-                    Box(
+                    UiStateContent(
+                        cargando = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                            .weight(1f)
+                    )
                 }
 
                 is ReminderListUiState.Vacio -> {
 
-                    Column(
+                    UiStateContent(
+                        estaVacio = true,
+                        onCrear = onCreateClick,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "No tenés recordatorios todavía.",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Button(
-                            onClick = onCreateClick
-                        ) {
-                            Text("Crear recordatorio")
-                        }
-                    }
+                            .weight(1f)
+                    )
                 }
 
                 is ReminderListUiState.ConDatos -> {
@@ -205,26 +187,13 @@ fun ReminderListScreen(
 
                 is ReminderListUiState.Error -> {
 
-                    Column(
+                    UiStateContent(
+                        mensajeError = uiState.mensaje,
+                        onReintentar = onRetry,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = uiState.mensaje,
-                            color = MaterialTheme.colorScheme.error
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Button(
-                            onClick = onRetry
-                        ) {
-                            Text("Reintentar")
-                        }
-                    }
+                            .weight(1f)
+                    )
                 }
             }
         }

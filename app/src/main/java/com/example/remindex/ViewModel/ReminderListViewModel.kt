@@ -6,8 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.remindex.data.IReminderRepository
 import com.example.remindex.data.ReminderRepository
 import com.example.remindex.ui.state.ReminderListUiState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ReminderListViewModel(
@@ -17,28 +20,34 @@ class ReminderListViewModel(
         ReminderListUiState.Cargando
     )
 
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<ReminderListUiState> = _uiState.asStateFlow()
 
     init {
         cargarRecordatorios()
     }
     fun cargarRecordatorios() {
         viewModelScope.launch {
-            _uiState.value = ReminderListUiState.Cargando
+            _uiState.update { ReminderListUiState.Cargando }
 
             try {
                 val recordatorios = repository.obtenerRecordatorios()
 
-                _uiState.value = if (recordatorios.isEmpty()) {
-                    ReminderListUiState.Vacio
-                } else {
-                    ReminderListUiState.ConDatos(recordatorios)
+                _uiState.update {
+                    if (recordatorios.isEmpty()) {
+                        ReminderListUiState.Vacio
+                    } else {
+                        ReminderListUiState.ConDatos(recordatorios)
+                    }
                 }
 
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _uiState.value = ReminderListUiState.Error(
-                    e.message ?: "Ocurrió un error al cargar los recordatorios."
-                )
+                _uiState.update {
+                    ReminderListUiState.Error(
+                        e.message ?: "Ocurrió un error al cargar los recordatorios."
+                    )
+                }
             }
         }
     }

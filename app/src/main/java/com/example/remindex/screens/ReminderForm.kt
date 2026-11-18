@@ -112,7 +112,7 @@ fun ReminderFormScreen(
                 Button(
                     onClick = onGuardar,
                     modifier = Modifier.weight(1f),
-                    enabled = !uiState.enviando
+                    enabled = uiState.esValido && !uiState.enviando
                 ) {
                     Text(
                         if (uiState.enviando) "Guardando..."

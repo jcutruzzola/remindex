@@ -103,7 +103,7 @@ fun SelectorDeCategoria(
 ){
     var expandido by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier) {
+    Column(modifier = modifier) {
         Text("Categoria")
 
         TextButton(onClick = {expandido = true}) {
@@ -147,7 +147,7 @@ fun SelectorPrioridad(
 ){
     var expandido by remember {mutableStateOf(false)}
 
-    Column(modifier = Modifier) {
+    Column(modifier = modifier) {
         Text("Prioridad")
 
         TextButton(onClick = {expandido = true}) {
